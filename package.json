@@ -4,7 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start:dev": "nodemon --watch src --ext ts --exec 'tsc --build tsconfig.json && node dist/index.js'"
+    "start:dev": "nodemon --watch src --ext ts --exec 'tsc --build tsconfig.json && node dist/index.js'",
+    "build": "tsc --build tsconfig.json",
+    "run": "node dist/index.js"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.2",
