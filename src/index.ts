@@ -22,8 +22,9 @@ timerIO.on('connection', Timer.timerConnectionHandler(timerIO));
 const realtimeUpdatesIO = io.of('realtimeListUpdates');
 
 const corsOptions = {
-  origin: 'http://platform-retro.surge.sh/',
+  origin: 'http://platform-retro.surge.sh',
   optionsSuccessStatus: 200,
+  credentials: true,
 }
 
 app.use(cors(corsOptions));
