@@ -1,6 +1,5 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
 const cors = require('cors');
 import http from 'http';
 import Timer from './Timer';
@@ -23,7 +22,6 @@ const realtimeUpdatesIO = io.of('realtimeListUpdates');
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(cookieParser());
 
 app.use((req, res, next) => {
   res.locals.realtimeListUpdates = [];
@@ -107,14 +105,13 @@ app.post('/lists/:listId/items/:itemId/reorder', async (req, res, next) => {
 });
 
 app.put('/lists/:listId/items/:itemId/vote', async (req, res, next) => {
-  let user = req.cookies.user;
+  let user = req.body.user;
   if (user == null) {
     user = uuidv4();
-    res.cookie('user', user);
   }
   const vote = req.query.vote === 'true';
   await List.voteItem(req.params.listId, req.params.itemId, user, vote)
-  res.sendStatus(200);
+  res.json({ user });
 
   res.locals.realtimeListUpdates.push({
     type: 'ITEM_VOTES_CHANGED',
