@@ -1,4 +1,4 @@
-import Database from "../Database";
+import Database from '../Database';
 import Utils from './Utils';
 import List from './List';
 
@@ -11,9 +11,7 @@ async function getCollection() {
 
 async function create() {
   const collection = await getCollection();
-  const retroId = await Utils.generateId(async (id) => {
-    return collection.find({ _id: id }).count();
-  });
+  const retroId = await Utils.generateId(async (id) => collection.find({ _id: id }).count());
 
   const wentWellListId = await List.create();
   const needsImprovementListId = await List.create();
@@ -25,19 +23,19 @@ async function create() {
       needsImprovement: needsImprovementListId,
     },
     finishedOn: null,
-  }
+  };
 
-  await collection.insertOne(newRetro)
+  await collection.insertOne(newRetro);
   return retroId;
 }
 
 async function all() {
   const collection = await getCollection();
   const result = await collection.find({});
-  return (await result.toArray()).map(r => {
-    r.id = r._id;
-    delete r._id;
-    return r;
+  return (await result.toArray()).map((r) => {
+    const v = { ...r, id: r._id };
+    delete v._id;
+    return v;
   });
 }
 
@@ -54,4 +52,4 @@ export default {
   create,
   all,
   finish,
-}
+};

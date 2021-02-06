@@ -1,20 +1,20 @@
-import { Namespace, Socket } from "socket.io";
+import { Namespace, Socket } from 'socket.io';
 
-enum TIMER_STATUS {
+enum TimerStatus {
   CLEAR = 'CLEAR',
   STOPPED = 'STOPPED',
   ACTIVE = 'ACTIVE',
 }
 
 let time: number = 0;
-let status: TIMER_STATUS = TIMER_STATUS.CLEAR;
+let status: TimerStatus = TimerStatus.CLEAR;
 
 const tick = () => {
-  if (status === TIMER_STATUS.ACTIVE) {
+  if (status === TimerStatus.ACTIVE) {
     time -= 1;
     if (time <= 0) {
       time = 0;
-      status = TIMER_STATUS.STOPPED;
+      status = TimerStatus.STOPPED;
     }
   }
 };
@@ -30,23 +30,23 @@ const timerConnectionHandler = (namespace: Namespace) => {
   return (socket: Socket) => {
     socket.on('INIT_TIMER', (t) => {
       time = t;
-      status = TIMER_STATUS.ACTIVE;
+      status = TimerStatus.ACTIVE;
       sendData();
     });
 
     socket.on('START_TIMER', () => {
-      status = TIMER_STATUS.ACTIVE;
+      status = TimerStatus.ACTIVE;
       sendData();
     });
 
     socket.on('STOP_TIMER', () => {
-      status = TIMER_STATUS.STOPPED;
+      status = TimerStatus.STOPPED;
       sendData();
     });
 
     socket.on('CLEAR_TIMER', () => {
       time = 0;
-      status = TIMER_STATUS.CLEAR;
+      status = TimerStatus.CLEAR;
       sendData();
     });
   };

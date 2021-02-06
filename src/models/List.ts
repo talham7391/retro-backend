@@ -1,4 +1,4 @@
-import Database from "../Database";
+import Database from '../Database';
 import Utils from './Utils';
 
 const LIST_COLLECTION = 'lists';
@@ -10,9 +10,7 @@ async function getCollection() {
 
 async function create() {
   const collection = await getCollection();
-  const listId = await Utils.generateId(async (id) => {
-    return await collection.find({ _id: id }).count();
-  });
+  const listId = await Utils.generateId(async (id) => collection.find({ _id: id }).count());
   const emptyList = {
     _id: listId,
     items: [],
@@ -31,9 +29,7 @@ async function get(listId: string) {
 
 async function addItem(listId: string, content: string) {
   const collection = await getCollection();
-  const itemId = await Utils.generateId(async (id) => {
-    return await collection.find({ _id: listId, 'items.id': id }).count();
-  });
+  const itemId = await Utils.generateId(async (id) => collection.find({ _id: listId, 'items.id': id }).count());
   const item = {
     id: itemId,
     content,
@@ -76,21 +72,24 @@ async function modifyItem(listId: string, itemId: string, properties: Properties
   );
 }
 
+type Item = {
+  id: string,
+};
+
 async function reorderItem(listId: string, itemId: string, index: number) {
   const collection = await getCollection();
   const doc = await collection.findOne({ _id: listId });
-  for (const item of doc.items) {
-    if (item.id === itemId) {
-      await collection.updateOne(
-        { _id: listId },
-        { $pull: { items: { id: itemId } } },
-      );
-      await collection.updateOne(
-        { _id: listId },
-        { $push: { items: { $each: [item], $position: index } } }
-      );
-      return;
-    }
+  const item = doc.items.find((i: Item) => i.id === itemId);
+
+  if (item != null) {
+    await collection.updateOne(
+      { _id: listId },
+      { $pull: { items: { id: itemId } } },
+    );
+    await collection.updateOne(
+      { _id: listId },
+      { $push: { items: { $each: [item], $position: index } } },
+    );
   }
 }
 
@@ -117,4 +116,4 @@ export default {
   modifyItem,
   reorderItem,
   voteItem,
-}
+};

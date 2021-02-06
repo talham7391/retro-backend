@@ -1,17 +1,18 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-const cors = require('cors');
+import cors from 'cors';
 import http from 'http';
+import { v4 as uuidv4 } from 'uuid';
+
 import Timer from './Timer';
 import Retro from './models/Retro';
 import List from './models/List';
-import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: "*",
+    origin: '*',
   },
 });
 
@@ -92,7 +93,7 @@ app.delete('/lists/:listId/items/:itemId', async (req, res, next) => {
 
 app.post('/lists/:listId/items/:itemId/reorder', async (req, res, next) => {
   if (typeof req.query.index === 'string') {
-    await List.reorderItem(req.params.listId, req.params.itemId, parseInt(req.query.index));
+    await List.reorderItem(req.params.listId, req.params.itemId, parseInt(req.query.index, 10));
     res.sendStatus(200);
     res.locals.realtimeListUpdates.push({
       type: 'LIST_REORDERED',
@@ -105,12 +106,12 @@ app.post('/lists/:listId/items/:itemId/reorder', async (req, res, next) => {
 });
 
 app.put('/lists/:listId/items/:itemId/vote', async (req, res, next) => {
-  let user = req.body.user;
+  let { user } = req.body;
   if (user == null) {
     user = uuidv4();
   }
   const vote = req.query.vote === 'true';
-  await List.voteItem(req.params.listId, req.params.itemId, user, vote)
+  await List.voteItem(req.params.listId, req.params.itemId, user, vote);
   res.json({ user });
 
   res.locals.realtimeListUpdates.push({
