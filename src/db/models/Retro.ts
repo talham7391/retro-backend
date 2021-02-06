@@ -1,5 +1,5 @@
 import Database from '../Database';
-import Utils from './Utils';
+import Utils from '../Utils';
 import List from './List';
 
 const RETRO_COLLECTION = 'retros';

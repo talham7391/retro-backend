@@ -2,11 +2,11 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import http from 'http';
-import { v4 as uuidv4 } from 'uuid';
 
 import Timer from './Timer';
-import Retro from './models/Retro';
-import List from './models/List';
+import Retros from './views/Retros';
+import Lists from './views/Lists';
+import Items from './views/Lists/Items';
 
 const app = express();
 const server = http.createServer(app);
@@ -30,97 +30,20 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res, next) => {
-  res.send('Hello, World!');
-  next();
-});
-
-app.get('/retros', async (req, res, next) => {
-  res.json(await Retro.all());
-  next();
-});
-
-app.post('/retros', async (req, res, next) => {
-  const retroId = await Retro.create();
-  res.json({ id: retroId });
-  next();
-});
-
-app.post('/retros/:retroId/finish', async (req, res, next) => {
-  await Retro.finish(req.params.retroId);
   res.sendStatus(200);
   next();
 });
 
-app.post('/lists', async (req, res, next) => {
-  res.json({ id: await List.create() });
-  next();
-});
-
-app.get('/lists/:listId', async (req, res, next) => {
-  res.json(await List.get(req.params.listId));
-  next();
-});
-
-app.post('/lists/:listId/items', async (req, res, next) => {
-  const itemId = await List.addItem(req.params.listId, req.body.content);
-  res.json({ id: itemId });
-  res.locals.realtimeListUpdates.push({
-    type: 'ITEM_CREATED',
-    payload: { listId: req.params.listId, itemId, content: req.body.content },
-  });
-  next();
-});
-
-app.put('/lists/:listId/items/:itemId', async (req, res, next) => {
-  await List.modifyItem(req.params.listId, req.params.itemId, { ...req.body });
-  res.sendStatus(200);
-  res.locals.realtimeListUpdates.push({
-    type: 'ITEM_CHANGED',
-    payload: { listId: req.params.listId, itemId: req.params.itemId, content: req.body.content },
-  });
-  next();
-});
-
-app.delete('/lists/:listId/items/:itemId', async (req, res, next) => {
-  await List.deleteItem(req.params.listId, req.params.itemId);
-  res.sendStatus(200);
-  res.locals.realtimeListUpdates.push({
-    type: 'ITEM_DELETED',
-    payload: { listId: req.params.listId, itemId: req.params.itemId },
-  });
-  next();
-});
-
-app.post('/lists/:listId/items/:itemId/reorder', async (req, res, next) => {
-  if (typeof req.query.index === 'string') {
-    await List.reorderItem(req.params.listId, req.params.itemId, parseInt(req.query.index, 10));
-    res.sendStatus(200);
-    res.locals.realtimeListUpdates.push({
-      type: 'LIST_REORDERED',
-      payload: { listId: req.params.listId },
-    });
-  } else {
-    res.sendStatus(500);
-  }
-  next();
-});
-
-app.put('/lists/:listId/items/:itemId/vote', async (req, res, next) => {
-  let { user } = req.body;
-  if (user == null) {
-    user = uuidv4();
-  }
-  const vote = req.query.vote === 'true';
-  await List.voteItem(req.params.listId, req.params.itemId, user, vote);
-  res.json({ user });
-
-  res.locals.realtimeListUpdates.push({
-    type: 'ITEM_VOTES_CHANGED',
-    payload: { listId: req.params.listId, itemId: req.params.itemId, vote },
-  });
-
-  next();
-});
+app.get('/retros', Retros.list);
+app.post('/retros', Retros.create);
+app.post('/retros/:retroId/finish', Retros.finishAction);
+app.post('/lists', Lists.create);
+app.get('/lists/:listId', Lists.get);
+app.post('/lists/:listId/items', Items.create);
+app.put('/lists/:listId/items/:itemId', Items.update);
+app.delete('/lists/:listId/items/:itemId', Items.remove);
+app.post('/lists/:listId/items/:itemId/reorder', Items.reorderAction);
+app.put('/lists/:listId/items/:itemId/vote', Items.voteAction);
 
 app.use(async (req, res, next) => {
   if (res.locals.realtimeListUpdates.length > 0) {
